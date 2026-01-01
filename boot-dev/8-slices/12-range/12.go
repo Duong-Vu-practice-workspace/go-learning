@@ -1,13 +1,13 @@
 package main
 
+import "slices"
+
 func indexOfFirstBadWord(msg []string, badWords []string) int {
 	// ?
 	for i, value := range msg {
-		for _, badWord := range badWords {
-			if value == badWord {
+		if slices.Contains(badWords, value) {
 				return i
 			}
-		}
 	}
 	return -1
 }
