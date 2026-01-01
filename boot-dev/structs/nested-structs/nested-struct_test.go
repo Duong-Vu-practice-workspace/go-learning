@@ -1,80 +1,110 @@
 package nested_structs
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
-func TestCanSendMessage_AllFieldsPresent(t *testing.T) {
-	m := messageToSend{
-		message: "Hi",
-		sender:  user{name: "Alice", number: 1111},
-		recipient: user{
-			name:   "Bob",
-			number: 2222,
-		},
+func Test(t *testing.T) {
+	type testCase struct {
+		mToSend  messageToSend
+		expected bool
 	}
-	if !canSendMessage(m) {
-		t.Fatalf("canSendMessage returned false; want true")
+
+	runCases := []testCase{
+		{messageToSend{
+			message:   "you have an appointment tomorrow",
+			sender:    user{name: "Brenda Halafax", number: 16545550987},
+			recipient: user{name: "Sally Sue", number: 19035558973},
+		}, true},
+		{messageToSend{
+			message:   "you have an event tomorrow",
+			sender:    user{number: 16545550987},
+			recipient: user{name: "Suzie Sall", number: 19035558973},
+		}, false},
 	}
+
+	submitCases := append(runCases, []testCase{
+		{messageToSend{
+			message:   "you have an birthday tomorrow",
+			sender:    user{name: "Jason Bjorn", number: 16545550987},
+			recipient: user{name: "Jim Bond"},
+		}, false},
+		{messageToSend{
+			message:   "you have a party tomorrow",
+			sender:    user{name: "Njorn Halafax"},
+			recipient: user{name: "Becky Sue", number: 19035558973},
+		}, false},
+		{messageToSend{
+			message:   "you have a birthday tomorrow",
+			sender:    user{name: "Eli Halafax", number: 16545550987},
+			recipient: user{number: 19035558973},
+		}, false},
+	}...)
+
+	testCases := runCases
+	if withSubmit {
+		testCases = submitCases
+	}
+
+	skipped := len(submitCases) - len(testCases)
+	passCount := 0
+	failCount := 0
+
+	for _, test := range testCases {
+		output := canSendMessage(test.mToSend)
+		if output != test.expected {
+			failCount++
+			t.Errorf(`---------------------------------
+Inputs:
+  * message:          %s
+  * sender.name:      %s
+  * sender.number:    %d
+  * recipient.name:   %s
+  * recipient.number: %d
+  Expected:           %v
+  Actual:             %v
+Fail
+`,
+				test.mToSend.message,
+				test.mToSend.sender.name,
+				test.mToSend.sender.number,
+				test.mToSend.recipient.name,
+				test.mToSend.recipient.number,
+				test.expected,
+				output)
+		} else {
+			passCount++
+			fmt.Printf(`---------------------------------
+Inputs:
+  * message:          %s
+  * sender.name:      %s
+  * sender.number:    %d
+  * recipient.name:   %s
+  * recipient.number: %d
+  Expected:           %v
+  Actual:             %v
+Pass
+`,
+				test.mToSend.message,
+				test.mToSend.sender.name,
+				test.mToSend.sender.number,
+				test.mToSend.recipient.name,
+				test.mToSend.recipient.number,
+				test.expected,
+				output)
+		}
+	}
+
+	fmt.Println("---------------------------------")
+	if skipped > 0 {
+		fmt.Printf("%d passed, %d failed, %d skipped\n", passCount, failCount, skipped)
+	} else {
+		fmt.Printf("%d passed, %d failed\n", passCount, failCount)
+	}
+
 }
 
-func TestCanSendMessage_MissingSenderName(t *testing.T) {
-	m := messageToSend{
-		message: "Hi",
-		sender:  user{name: "", number: 1111},
-		recipient: user{
-			name:   "Bob",
-			number: 2222,
-		},
-	}
-	if canSendMessage(m) {
-		t.Fatalf("canSendMessage returned true for missing sender name; want false")
-	}
-}
-
-func TestCanSendMessage_MissingSenderNumber(t *testing.T) {
-	m := messageToSend{
-		message: "Hi",
-		sender:  user{name: "Alice", number: 0},
-		recipient: user{
-			name:   "Bob",
-			number: 2222,
-		},
-	}
-	if canSendMessage(m) {
-		t.Fatalf("canSendMessage returned true for missing sender number; want false")
-	}
-}
-
-func TestCanSendMessage_MissingRecipientName(t *testing.T) {
-	m := messageToSend{
-		message: "Hi",
-		sender:  user{name: "Alice", number: 1111},
-		recipient: user{
-			name:   "",
-			number: 2222,
-		},
-	}
-	if canSendMessage(m) {
-		t.Fatalf("canSendMessage returned true for missing recipient name; want false")
-	}
-}
-
-func TestCanSendMessage_MissingRecipientNumber(t *testing.T) {
-	m := messageToSend{
-		message: "Hi",
-		sender:  user{name: "Alice", number: 1111},
-		recipient: user{
-			name:   "Bob",
-			number: 0,
-		},
-	}
-	if canSendMessage(m) {
-		t.Fatalf("canSendMessage returned true for missing recipient number; want false")
-	}
-}
-
-func TestCanSendMessage_ZeroValueStruct(t *testing.T) {
-	var m messageToSend
-	if canSendMessage(m) {
-		t.Fatalf("canSendMessage returned true for zero-value struct; want false")
-	}
-}
+// withSubmit is set at compile time depending
+// on which button is used to run the tests
+var withSubmit = true
