@@ -28,3 +28,8 @@ If all went well, Go compiled and installed the hellogo program globally on your
 hellogo
 
 Run and submit the CLI tests from anywhere on your machine.
+
+# Remote packages
+```bash
+go get github.com/wagslane/go-tinytime
+```
